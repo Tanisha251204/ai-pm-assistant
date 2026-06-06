@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI PM Assistant</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+
+  <div class="bg-orb orb1"></div>
+  <div class="bg-orb orb2"></div>
+  <div class="bg-orb orb3"></div>
+
+
+  <div class="noise"></div>
+
+  <div class="container">
+
+
+    <header class="header">
+      <div class="logo-chip">
+        <span class="logo-icon">⚡</span>
+        <span>AI PM</span>
+      </div>
+      <div class="status-badge">
+        <span class="pulse-dot"></span>
+        Backend Live
+      </div>
+    </header>
+
+
+    <section class="hero">
+      <h1 class="hero-title">
+        Ship faster with<br>
+        <span class="gradient-text">AI-crafted PRDs</span>
+      </h1>
+      <p class="hero-sub">Generate Product Requirements, User Stories & Feature Plans in seconds — not hours.</p>
+    </section>
+
+   
+    <div class="card form-card">
+      <div class="card-glow"></div>
+
+      <div class="field-group">
+        <label class="field-label" for="productName">
+          <span class="label-icon"></span> PRODUCT NAME
+        </label>
+        <input
+          type="text"
+          id="productName"
+          class="field-input"
+          placeholder="e.g. Food Delivery App"
+          autocomplete="off"
+        />
+      </div>
+
+      <div class="field-group">
+        <label class="field-label" for="productDescription">
+          <span class="label-icon"></span> PRODUCT DESCRIPTION
+        </label>
+        <textarea
+          id="productDescription"
+          class="field-input field-textarea"
+          rows="4"
+          placeholder="Describe what your product does and who it is for..."
+        ></textarea>
+      </div>
+
+      <button id="generateBtn" class="btn-generate" onclick="generatePRD()">
+        <span class="btn-text">
+          <span class="btn-icon">✦</span>
+          Generate PRD
+        </span>
+        <div class="btn-shimmer"></div>
+      </button>
+    </div>
+
+    <div class="card output-card" id="outputSection">
+      <div class="output-header">
+        <h2 class="output-title">
+          <span class="output-icon"></span>
+          OUTPUT
+        </h2>
+        <div class="output-tag" id="outputTag">Waiting...</div>
+      </div>
+      <div id="outputContent" class="output-content">
+        Your generated content will appear here...
+      </div>
+    </div>
+
+    <footer class="footer">Built with FastAPI + Claude AI · Week 1 Day 3</footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
