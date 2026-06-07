@@ -37,7 +37,9 @@ async function generatePRD() {
     const data = await response.json();
  
     // Step 6: Display the response on screen
-    output.textContent = JSON.stringify(data, null, 2);
+    output.textContent = data.prd;
+    console.log('Tokens used:', data.tokens_used);
+    console.log('Product:', data.product_name);
     output.classList.add("has-data");
     tag.textContent = "✓ Ready";
     tag.className = "output-tag ready";
