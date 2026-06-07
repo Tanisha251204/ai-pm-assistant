@@ -5,7 +5,7 @@ and feature prioritization for product managers.
 
 ## Tech Stack
 - Python + FastAPI (Backend)
-- Anthropic Claude API (AI)
+-  Groq API (AI)
 - HTML/CSS/JS (Frontend)
 - SQLite + SQLAlchemy (Database)
 
