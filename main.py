@@ -1,9 +1,11 @@
 import os
 from groq import Groq
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
+from sqlalchemy.orm import Session
+from database import GeneratedDoc, create_tables, get_db
 
 load_dotenv()
 
@@ -18,6 +20,8 @@ app.add_middleware(
 
 client = Groq(api_key=os.getenv('GROQ_API_KEY'))
 
+create_tables()
+
 
 class ProductRequest(BaseModel):
     product_name: str
@@ -31,16 +35,20 @@ def home():
 
 @app.get('/about')
 def about():
-    return {'project': 'AI PM Assistant', 'version': '2.0'}
+    return {
+        'project': 'AI PM Assistant',
+        'version': '3.0',
+        'description': 'Generates PRDs using Groq + Llama 3 with history'
+    }
 
 
 @app.post('/generate')
-def generate(request: ProductRequest):
+def generate(request: ProductRequest, db: Session = Depends(get_db)):
 
     system_prompt = (
         'You are a senior PM. Write PRDs with: '
-        '1.Problem Statement 2.Goals 3.User Personas '
-        '4.Core Features 5.Out of Scope 6.Timeline'
+        '1.Problem Statement 2.Goals 3.Personas '
+        '4.Features 5.Scope 6.Timeline'
     )
     user_prompt = (
         f'Generate PRD for: {request.product_name} '
@@ -62,26 +70,35 @@ def generate(request: ProductRequest):
         completion.usage.completion_tokens
     )
 
-    return {'prd': generated_text, 'tokens_used': tokens_used}
+    doc = GeneratedDoc(
+        product_name=request.product_name,
+        doc_type='prd',
+        content=generated_text,
+        tokens_used=tokens_used
+    )
+    db.add(doc)
+    db.commit()
+
+    return {
+        'prd': generated_text,
+        'tokens_used': tokens_used,
+        'doc_id': doc.id
+    }
 
 
 @app.post('/user-stories')
-def user_stories(request: ProductRequest):
+def user_stories(request: ProductRequest, db: Session = Depends(get_db)):
 
     system_prompt = (
-        'You are a senior product manager. '
-        'Generate user stories in the standard format: '
-        'As a [user type], I want to [action], so that [benefit]. '
-        'Generate exactly 8 user stories covering different user types. '
-        'Number each story. Be specific to the product described.'
+        'You are a senior PM. Generate 8 user stories: '
+        'As a [user], I want to [action], so that [benefit].'
     )
     user_prompt = (
-        f'Generate 8 user stories for: '
-        f'Product: {request.product_name} '
+        f'Generate 8 user stories for: {request.product_name} '
         f'Description: {request.product_description}'
     )
 
-    chat_completion = client.chat.completions.create(
+    completion = client.chat.completions.create(
         model='llama-3.3-70b-versatile',
         temperature=0.4,
         max_tokens=1024,
@@ -91,31 +108,41 @@ def user_stories(request: ProductRequest):
         ]
     )
 
+    generated_text = completion.choices[0].message.content
+    tokens_used = (
+        completion.usage.prompt_tokens +
+        completion.usage.completion_tokens
+    )
+
+    doc = GeneratedDoc(
+        product_name=request.product_name,
+        doc_type='user_stories',
+        content=generated_text,
+        tokens_used=tokens_used
+    )
+    db.add(doc)
+    db.commit()
+
     return {
-        'product_name': request.product_name,
-        'user_stories': chat_completion.choices[0].message.content,
-        'tokens_used': chat_completion.usage.total_tokens
+        'user_stories': generated_text,
+        'tokens_used': tokens_used,
+        'doc_id': doc.id
     }
 
 
 @app.post('/prioritize')
-def prioritize(request: ProductRequest):
+def prioritize(request: ProductRequest, db: Session = Depends(get_db)):
 
     system_prompt = (
-        'You are a senior product manager. '
-        'Analyze the product and create a MoSCoW prioritization list. '
-        'MoSCoW stands for: Must Have, Should Have, Could Have, Won\'t Have. '
-        'For each category list 3-4 specific features. '
-        'Explain briefly WHY each feature is in that category. '
-        'Format clearly with headers for each category.'
+        'You are a senior PM. Create MoSCoW prioritization. '
+        'Must Have, Should Have, Could Have, Wont Have. 3-4 features each.'
     )
     user_prompt = (
-        f'Create a MoSCoW prioritization for: '
-        f'Product: {request.product_name} '
+        f'MoSCoW for: {request.product_name} '
         f'Description: {request.product_description}'
     )
 
-    chat_completion = client.chat.completions.create(
+    completion = client.chat.completions.create(
         model='llama-3.3-70b-versatile',
         temperature=0.3,
         max_tokens=1024,
@@ -125,8 +152,45 @@ def prioritize(request: ProductRequest):
         ]
     )
 
+    generated_text = completion.choices[0].message.content
+    tokens_used = (
+        completion.usage.prompt_tokens +
+        completion.usage.completion_tokens
+    )
+
+    doc = GeneratedDoc(
+        product_name=request.product_name,
+        doc_type='prioritization',
+        content=generated_text,
+        tokens_used=tokens_used
+    )
+    db.add(doc)
+    db.commit()
+
     return {
-        'product_name': request.product_name,
-        'prioritization': chat_completion.choices[0].message.content,
-        'tokens_used': chat_completion.usage.total_tokens
+        'prioritization': generated_text,
+        'tokens_used': tokens_used,
+        'doc_id': doc.id
+    }
+
+
+@app.get('/history')
+def history(db: Session = Depends(get_db)):
+
+    docs = db.query(GeneratedDoc).order_by(
+        GeneratedDoc.created_at.desc()
+    ).all()
+
+    return {
+        'total': len(docs),
+        'history': [
+            {
+                'id':           doc.id,
+                'product_name': doc.product_name,
+                'doc_type':     doc.doc_type,
+                'tokens_used':  doc.tokens_used,
+                'created_at':   str(doc.created_at)
+            }
+            for doc in docs
+        ]
     }

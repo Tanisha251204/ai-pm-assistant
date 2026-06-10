@@ -23,16 +23,44 @@
                 placeholder="Describe what your product does and who it is for..."></textarea>
 
             <div class="tab-buttons">
-                <button onclick="generate('prd')" id="btn-prd">Generate PRD</button>
-                <button onclick="generate('user-stories')" id="btn-user-stories">User Stories</button>
-                <button onclick="generate('prioritize')" id="btn-prioritize">Prioritization</button>
+                <button onclick="generate('prd', event); return false;" id="btn-prd">Generate PRD</button>
+                <button onclick="generate('user-stories', event); return false;" id="btn-user-stories">User Stories</button>
+                <button onclick="generate('prioritize', event); return false;" id="btn-prioritize">Prioritization</button>
             </div>
 
         </div>
 
         <div class="output-section">
-            <h2 id="outputTitle">Output</h2>
-            <div id="outputContent">Your generated content will appear here...</div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h2 id="outputTitle">Output</h2>
+                <button
+                    id="downloadBtn"
+                    onclick="downloadPDF()"
+                    style="display:none; padding:10px 20px;
+                           background:#10b981; color:white; border:none;
+                           border-radius:8px; font-size:0.85rem;
+                           font-weight:bold; cursor:pointer;">
+                    Download PDF
+                </button>
+            </div>
+            <div id="outputContent">
+                Your generated content will appear here...
+            </div>
+        </div>
+
+        <div class="output-section" style="margin-top:20px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h2 style="color:#6366f1;">History</h2>
+                <button onclick="loadHistory()"
+                    style="padding:8px 16px; background:#1e293b;
+                           border:1px solid #334155; border-radius:6px;
+                           color:#94a3b8; cursor:pointer; font-size:0.8rem;">
+                    Refresh History
+                </button>
+            </div>
+            <div id="historyContent" style="margin-top:12px; color:#94a3b8;">
+                Click Refresh History to load...
+            </div>
         </div>
 
     </div>
