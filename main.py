@@ -1,11 +1,14 @@
+
 import os
 from groq import Groq
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 from database import GeneratedDoc, create_tables, get_db
+from pdf_generator import generate_pdf
 
 load_dotenv()
 
@@ -194,3 +197,30 @@ def history(db: Session = Depends(get_db)):
             for doc in docs
         ]
     }
+
+
+@app.get('/download/{doc_id}')
+def download_pdf(doc_id: int, db: Session = Depends(get_db)):
+
+    # Fetch the document from the database
+    doc = db.query(GeneratedDoc).filter(
+        GeneratedDoc.id == doc_id
+    ).first()
+
+    # If document not found, return error
+    if not doc:
+        return {'error': 'Document not found'}
+
+    # Generate the PDF file using our pdf_generator
+    pdf_path = generate_pdf(
+        product_name=doc.product_name,
+        doc_type=doc.doc_type,
+        content=doc.content
+    )
+
+    # Send the PDF file as a download
+    return FileResponse(
+        path=pdf_path,
+        media_type='application/pdf',
+        filename=f'{doc.product_name}_{doc.doc_type}.pdf'
+    )

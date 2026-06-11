@@ -66,6 +66,10 @@ async function generate(type, event) {
         output.textContent = data[config.field];
         currentDocId       = data.doc_id;
 
+        // Show download button
+        const downloadBtn = document.getElementById('downloadBtn');
+        if (downloadBtn) downloadBtn.style.display = 'block';
+
         console.log('Type:', type);
         console.log('Tokens used:', data.tokens_used);
         console.log('Doc ID:', data.doc_id);
