@@ -1,7 +1,6 @@
-
 import os
 from groq import Groq
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
@@ -9,6 +8,7 @@ from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 from database import GeneratedDoc, create_tables, get_db
 from pdf_generator import generate_pdf
+from rag import add_document, retrieve_context, clear_documents
 
 load_dotenv()
 
@@ -45,14 +45,59 @@ def about():
     }
 
 
+@app.post('/upload')
+async def upload_document(file: UploadFile = File(...)):
+
+    content = await file.read()
+    text = content.decode('utf-8', errors='ignore')
+
+    if not text.strip():
+        return {'error': 'File is empty or could not be read'}
+
+    chunks_added = add_document(
+        doc_id=file.filename,
+        text=text,
+        metadata={'filename': file.filename}
+    )
+
+    return {
+        'message': 'Document uploaded successfully',
+        'filename': file.filename,
+        'chunks_stored': chunks_added
+    }
+
+
+@app.delete('/clear-documents')
+def delete_documents():
+    clear_documents()
+    return {'message': 'All uploaded documents cleared'}
+
+
 @app.post('/generate')
 def generate(request: ProductRequest, db: Session = Depends(get_db)):
 
-    system_prompt = (
-        'You are a senior PM. Write PRDs with: '
-        '1.Problem Statement 2.Goals 3.Personas '
-        '4.Features 5.Scope 6.Timeline'
+    # Retrieve relevant context from uploaded documents
+    context = retrieve_context(
+        f'{request.product_name} {request.product_description}'
     )
+
+    # Build system prompt — include context if available
+    if context:
+        system_prompt = (
+            'You are a senior PM. Write PRDs with: '
+            '1.Problem Statement 2.Goals 3.Personas '
+            '4.Features 5.Scope 6.Timeline. '
+            'Use the following context from past documents '
+            'to match the writing style and format:\n\n'
+            + context
+        )
+    else:
+        system_prompt = (
+            'You are a senior PM. Write PRDs with: '
+            '1.Problem Statement 2.Goals 3.Personas '
+            '4.Features 5.Scope 6.Timeline'
+        )
+
     user_prompt = (
         f'Generate PRD for: {request.product_name} '
         f'Description: {request.product_description}'
@@ -202,23 +247,19 @@ def history(db: Session = Depends(get_db)):
 @app.get('/download/{doc_id}')
 def download_pdf(doc_id: int, db: Session = Depends(get_db)):
 
-    # Fetch the document from the database
     doc = db.query(GeneratedDoc).filter(
         GeneratedDoc.id == doc_id
     ).first()
 
-    # If document not found, return error
     if not doc:
         return {'error': 'Document not found'}
 
-    # Generate the PDF file using our pdf_generator
     pdf_path = generate_pdf(
         product_name=doc.product_name,
         doc_type=doc.doc_type,
         content=doc.content
     )
 
-    # Send the PDF file as a download
     return FileResponse(
         path=pdf_path,
         media_type='application/pdf',

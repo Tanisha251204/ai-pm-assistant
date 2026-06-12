@@ -133,3 +133,41 @@ function downloadPDF() {
         '_blank'
     );
 }
+
+async function uploadDocument() {
+
+    const fileInput = document.getElementById('ragFile');
+    const status    = document.getElementById('uploadStatus');
+
+    if (!fileInput.files[0]) {
+        alert('Please select a file first!');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+
+    status.textContent = 'Uploading...';
+
+    try {
+        const response = await fetch('http://127.0.0.1:8000/upload', {
+            method: 'POST',
+            body:   formData
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+            status.textContent = 'Error: ' + data.error;
+            status.style.color = '#ef4444';
+        } else {
+            status.textContent = data.chunks_stored + ' chunks stored!';
+            status.style.color = '#10b981';
+        }
+
+    } catch (error) {
+        status.textContent = 'Upload failed.';
+        status.style.color = '#ef4444';
+        console.error(error);
+    }
+}

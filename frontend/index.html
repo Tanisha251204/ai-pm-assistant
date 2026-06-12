@@ -21,6 +21,26 @@
             <label for="productDescription">Product Description</label>
             <textarea id="productDescription" rows="4"
                 placeholder="Describe what your product does and who it is for..."></textarea>
+                 
+                <div style="margin-top:20px; padding:16px;
+                    background:#0f172a; border-radius:8px;
+                    border:1px dashed #334155;">
+                <label style="color:#94a3b8; font-size:0.85rem;">
+                           Upload Reference Document (optional)
+                     <p style="color:#475569; font-size:0.8rem; margin:6px 0;">
+                          Upload a past PRD or document — AI will match its style
+                      <input type="file" id="ragFile" accept=".txt"
+                        style="color:#94a3b8; margin-top:8px; font-size:0.85rem;"/>
+                       <button onclick="uploadDocument(); return false;"
+                          style="margin-top:10px; padding:8px 16px;
+                          background:#7c3aed; color:white; border:none;
+                         border-radius:6px; cursor:pointer; font-size:0.85rem;">
+                         Upload Document
+                        </button>
+                      <span id="uploadStatus"
+                      style="margin-left:10px; font-size:0.8rem; color:#10b981;">
+                      </span>
+                    </div>
 
             <div class="tab-buttons">
                 <button onclick="generate('prd', event); return false;" id="btn-prd">Generate PRD</button>
