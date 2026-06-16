@@ -1,16 +1,18 @@
+const BASE_URL = 'https://ai-pm-assistant-2.onrender.com';
+
 const ENDPOINTS = {
     'prd': {
-        url:   'http://127.0.0.1:8000/generate',
+        url:   `${BASE_URL}/generate`,
         field: 'prd',
         title: 'PRD'
     },
     'user-stories': {
-        url:   'http://127.0.0.1:8000/user-stories',
+        url:   `${BASE_URL}/user-stories`,
         field: 'user_stories',
         title: 'User Stories'
     },
     'prioritize': {
-        url:   'http://127.0.0.1:8000/prioritize',
+        url:   `${BASE_URL}/prioritize`,
         field: 'prioritization',
         title: 'MoSCoW Prioritization'
     }
@@ -92,7 +94,7 @@ async function loadHistory() {
     historyDiv.textContent = 'Loading history...';
 
     try {
-        const response = await fetch('http://127.0.0.1:8000/history');
+        const response = await fetch(`${BASE_URL}/history`);
         const data     = await response.json();
 
         if (data.total === 0) {
@@ -129,10 +131,11 @@ function downloadPDF() {
     }
 
     window.open(
-        `http://127.0.0.1:8000/download/${currentDocId}`,
+        `${BASE_URL}/download/${currentDocId}`,
         '_blank'
     );
 }
+
 
 async function uploadDocument() {
 
@@ -150,7 +153,7 @@ async function uploadDocument() {
     status.textContent = 'Uploading...';
 
     try {
-        const response = await fetch('http://127.0.0.1:8000/upload', {
+        const response = await fetch(`${BASE_URL}/upload`, {
             method: 'POST',
             body:   formData
         });
