@@ -1,4 +1,4 @@
-const BASE_URL = 'https://ai-pm-assistant-2.onrender.com';
+const BASE_URL = 'https://ai-pm-assistant-3.onrender.com';
 
 const ENDPOINTS = {
     'prd': {
