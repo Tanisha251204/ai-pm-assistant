@@ -104,7 +104,7 @@ def generate(request: ProductRequest, db: Session = Depends(get_db)):
     )
 
     completion = client.chat.completions.create(
-        model='llama-3.3-70b-versatile',
+        model='openai/gpt-oss-120b',
         max_tokens=8192,
         messages=[
             {'role': 'system', 'content': system_prompt},
@@ -147,7 +147,7 @@ def user_stories(request: ProductRequest, db: Session = Depends(get_db)):
     )
 
     completion = client.chat.completions.create(
-        model='llama-3.3-70b-versatile',
+        model='openai/gpt-oss-120b',
         temperature=0.4,
         max_tokens=1024,
         messages=[
@@ -191,7 +191,7 @@ def prioritize(request: ProductRequest, db: Session = Depends(get_db)):
     )
 
     completion = client.chat.completions.create(
-        model='llama-3.3-70b-versatile',
+        model='openai/gpt-oss-120b',
         temperature=0.3,
         max_tokens=1024,
         messages=[
